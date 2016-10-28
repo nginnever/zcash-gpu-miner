@@ -55,19 +55,22 @@ This should compile our dependencies and build zcash-miner. (Note: if you don't 
 ### Run GPU test miner
 
 ```
-$ ./src/zcash-miner -G
+$ cd src
+$ ./zcash-miner -G
 ```
 
 Usage:
 
 ```
-$ ./src/zcash-miner -help
+$ cd src
+$ ./zcash-miner -help
 ```
 
 ### Stratum
 
 ```
-./src/zcash-miner -G -stratum="stratum+tcp://<address>:<port>" -user=<user> -password=<pass>
+$ cd src
+./zcash-miner -G -stratum="stratum+tcp://<address>:<port>" -user=<user> -password=<pass>
 ```
 
 ### Solo mine ZCash
@@ -87,7 +90,8 @@ deviceid=<device> (default: 0)
 Next run zcashd:
 
 ```
-./src/zcashd
+$ cd src
+$ ./zcashd
 ```
 
 ## Donations

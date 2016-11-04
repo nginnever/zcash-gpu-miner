@@ -244,8 +244,11 @@ int main(int argc, char* argv[])
 
 	GPUConfig conf;
 
-	conf.useGPU = GetBoolArg("-G", false);
+	conf.useGPU = GetBoolArg("-G", false) || GetBoolArg("-GPU", false);
 	conf.selGPU = GetArg("-S", 0);
+	conf.allGPU = GetBoolArg("-allgpu", false);
+	conf.forceGenProcLimit = GetBoolArg("-forcenolimit", false);
+	int nThreads = GetArg("-genproclimit", 1);
 	//std::cout << GPU << " " << selGPU << std::endl;
 
     // Zcash debugging
@@ -290,7 +293,7 @@ int main(int argc, char* argv[])
             return false;
         }
 
-        ZcashMiner miner(GetArg("-genproclimit", 1), conf);
+		ZcashMiner miner(GetArg("-genproclimit", 1), conf);
         ZcashStratumClient sc {
             &miner, host, port,
             GetArg("-user", "x"),
@@ -303,7 +306,7 @@ int main(int argc, char* argv[])
         });
 
         scSig = &sc;
-        signal(SIGINT, stratum_sigint_handler);
+        signal(SIGINT, stratum_sigint_handler);	
 
         while(sc.isRunning()) {
             MilliSleep(1000);

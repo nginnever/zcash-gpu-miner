@@ -80,6 +80,8 @@ public:
 	static unsigned getNumDevices(unsigned _platformId = 0);
 	static std::string platform_info(unsigned _platformId = 0, unsigned _deviceId = 0);
 	static void listDevices();
+	static std::vector<cl::Device> getDevices(std::vector<cl::Platform> const& _platforms, unsigned _platformId);
+	static std::vector<cl::Platform> getPlatforms();
 
 	// Currently just prints memory of the GPU
 	static bool configureGPU(
@@ -112,8 +114,6 @@ private:
   static const size_t z_collision_bit_length = z_n / (z_k + 1);
   static const eh_index z_N = 1 << (z_collision_bit_length + 1);
 
-	static std::vector<cl::Device> getDevices(std::vector<cl::Platform> const& _platforms, unsigned _platformId);
-	static std::vector<cl::Platform> getPlatforms();
 	int compare_indices32(uint32_t* a, uint32_t* b, size_t n_current_indices) {
 		for(size_t i = 0; i < n_current_indices; ++i, ++a, ++b) {
 		    if(*a < *b) {

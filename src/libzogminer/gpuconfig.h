@@ -31,7 +31,11 @@ public:
 	//~GPUConfig();
 	
 	bool useGPU;
-	int64_t selGPU;
+	unsigned selGPU;
+	bool allGPU;
+    bool forceGenProcLimit;
+	unsigned currentPlatform;
+	unsigned currentDevice;
 	unsigned globalWorkSize;
 	unsigned workgroupSize;
 

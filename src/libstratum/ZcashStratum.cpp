@@ -298,9 +298,100 @@ void ZcashMiner::start()
     }
 
     minerThreads = new boost::thread_group();
-    for (int i = 0; i < nThreads; i++) {
-        minerThreads->create_thread(boost::bind(&ZcashMinerThread, this, nThreads, i, conf));
-    }
+
+	// If using GPU
+  	if(conf.useGPU) {
+
+	  conf.currentPlatform = 0;
+	  conf.currentDevice = conf.selGPU;
+
+	  std::vector<cl::Platform> platforms = cl_zogminer::getPlatforms();
+
+	  // use all available GPUs
+	  if(conf.allGPU) {
+
+	        int devicesFound = 0;
+	        unsigned numPlatforms = platforms.size();
+
+	        for(unsigned platform = 0; platform < numPlatforms; ++platform) {
+
+	          std::vector<cl::Device> devices = cl_zogminer::getDevices(platforms, platform);
+	          unsigned noDevices = devices.size();
+	          devicesFound += noDevices;
+	          for(unsigned device = 0; device < noDevices; ++device) {
+
+	              conf.currentPlatform = platform;
+	              conf.currentDevice = device;
+
+	              cl_ulong result;
+	              devices[device].getInfo(CL_DEVICE_GLOBAL_MEM_SIZE, &result);
+	         
+				  int maxThreads = nThreads;
+				  if (!conf.forceGenProcLimit) {
+				    if (result > 7500000000) {
+				      maxThreads = std::min(4, nThreads);
+				    } else if (result > 5500000000) {
+				      maxThreads = std::min(3, nThreads);
+				    } else if (result > 3500000000) {
+				      maxThreads = std::min(2, nThreads);
+				    } else {
+				      maxThreads = std::min(1, nThreads);
+				    }
+				  }
+
+	              LogPrintf("ZcashMiner GPU[%d][%d] MemLimit: %s nThreads: %d\n", platform, device, std::to_string(result), maxThreads);
+
+	            for (int i = 0; i < maxThreads; i++)
+					minerThreads->create_thread(boost::bind(&ZcashMinerThread, this, nThreads, i, conf));
+
+	          }
+	        }
+
+	        if (devicesFound <= 0) {
+	           LogPrintf("ZcashMiner ERROR, No OpenCL devices found!\n");
+	        }
+
+	    } else {
+
+	      // mine on specified GPU device
+	      std::vector<cl::Device> devices = cl_zogminer::getDevices(platforms, conf.currentPlatform);
+
+	      if (devices.size() > conf.currentDevice) {
+
+	        cl_ulong result;
+	        devices[conf.currentDevice].getInfo(CL_DEVICE_GLOBAL_MEM_SIZE, &result);
+
+	        int maxThreads = nThreads;
+	        if (!conf.forceGenProcLimit) {
+	          if (result > 7500000000) {
+	            maxThreads = std::min(4, nThreads);
+	          } else if (result > 5500000000) {
+	            maxThreads = std::min(3, nThreads);
+	          } else if (result > 3500000000) {
+	            maxThreads = std::min(2, nThreads);
+	          } else {
+	            maxThreads = std::min(1, nThreads);
+	          }
+	        }
+
+	        LogPrintf("ZcashMiner GPU[%d][%d] MemLimit: %s nThreads: %d\n", conf.currentPlatform, conf.currentDevice, std::to_string(result), maxThreads);
+
+	        for (int i = 0; i < maxThreads; i++)
+	          	minerThreads->create_thread(boost::bind(&ZcashMinerThread, this, nThreads, i, conf));
+
+	      } else {
+	         LogPrintf("ZcashMiner ERROR, No OpenCL devices found!\n");
+	      }
+
+	    }
+
+	  } else {
+
+		 for (int i = 0; i < nThreads; i++)
+			minerThreads->create_thread(boost::bind(&ZcashMinerThread, this, nThreads, i, conf));
+
+	  }
+
 }
 
 void ZcashMiner::stop()
